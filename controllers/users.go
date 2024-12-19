@@ -126,3 +126,39 @@ func DeleteUser(ctx *gin.Context) {
 		Results:  deletedUser,
 	})
 }
+
+func CreateUser(ctx *gin.Context) {
+	var formUser models.User
+	ctx.ShouldBind(&formUser)
+	found := models.FindUserByEmail(strings.ToLower(formUser.Email))
+	if found != (models.User{}) {
+		ctx.JSON(http.StatusBadRequest, models.Response{
+			Succsess: false,
+			Message:  "email not available",
+		})
+		return
+	}
+	if len(formUser.Email) < 8 || !strings.Contains(formUser.Email, "@") {
+		ctx.JSON(http.StatusBadRequest, models.Response{
+			Succsess: false,
+			Message:  "email must be 8 character and contains @",
+		})
+		return
+	}
+	if len(formUser.Password) < 6 {
+		ctx.JSON(http.StatusBadRequest, models.Response{
+			Succsess: false,
+			Message:  "password length at least 6 chatacter",
+		})
+		return
+	}
+	hasher := libs.CreateHash(formUser.Password)
+	formUser.Email = strings.ToLower(formUser.Email)
+	formUser.Password = hasher
+	models.AddUser(formUser)
+
+	ctx.JSON(http.StatusOK, models.Response{
+		Succsess: true,
+		Message:  "register success",
+	})
+}
