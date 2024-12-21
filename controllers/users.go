@@ -88,7 +88,7 @@ func UpdateUser(ctx *gin.Context) {
 		})
 		return
 	}
-	if !strings.Contains(foundUser.Password, "$argon2i$v=19$m=65536,t=1,p=2$OIIAw9F7QeTBo4nWAfKgLQ$UEZ3jiaGXUw1oZ6TFm/PXN8a6G9RsYKGbbUxYdXZc54") {
+	if !strings.Contains(foundUser.Password, "$argon2i$v=19$m=65536,t=1") {
 		if foundUser.Password != "" {
 			if len(foundUser.Password) < 6 {
 				ctx.JSON(http.StatusBadRequest, models.Response{
@@ -103,23 +103,24 @@ func UpdateUser(ctx *gin.Context) {
 	updatedUser := models.UpdateUser(foundUser)
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
-		Message:  "movie detail has modify",
+		Message:  "user updated",
 		Results:  updatedUser,
 	})
 }
 
 func DeleteUser(ctx *gin.Context) {
-	idUser, _ := strconv.Atoi(ctx.Param("id"))
-	user := models.SelectOneUsers(idUser)
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	profile := models.SelectOneProfile(id)
 
-	if user == (models.User{}) {
+	if profile == (models.Profile{}) {
 		ctx.JSON(http.StatusNotFound, models.Response{
 			Succsess: false,
 			Message:  "user not found",
 		})
 		return
 	}
-	deletedUser := models.DropUser(idUser)
+	deletedUser := models.DropUser(profile.Id)
+	models.DropProfile(profile.Id)
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
 		Message:  "user deleted successfully",
@@ -155,7 +156,8 @@ func CreateUser(ctx *gin.Context) {
 	hasher := libs.CreateHash(formUser.Password)
 	formUser.Email = strings.ToLower(formUser.Email)
 	formUser.Password = hasher
-	models.AddUser(formUser)
+	profileId := models.AddProfile()
+	models.AddUser(formUser, profileId.Id)
 
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,

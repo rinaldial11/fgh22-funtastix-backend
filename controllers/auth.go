@@ -36,8 +36,16 @@ func Register(ctx *gin.Context) {
 	}
 	hasher := libs.CreateHash(formUser.Password)
 	formUser.Email = strings.ToLower(formUser.Email)
+
+	if strings.Contains(formUser.Email, "admin") {
+		formUser.Role = "admin"
+	} else {
+		formUser.Role = "user"
+	}
 	formUser.Password = hasher
-	models.AddUser(formUser)
+
+	profile := models.AddProfile()
+	models.AddUser(formUser, profile.Id)
 
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,

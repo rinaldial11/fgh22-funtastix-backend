@@ -24,10 +24,12 @@ type Response struct {
 }
 
 type User struct {
-	Id       int    `json:"id"`
-	Fullname string `json:"fullname" form:"fullname"`
-	Email    string `json:"email" form:"email"`
-	Password string `json:"password" form:"password"`
+	Id int `json:"id"`
+	// Fullname string `json:"fullname" form:"fullname"`
+	ProfileId int    `json:"profileId" db:"profile_id"`
+	Email     string `json:"email" form:"email"`
+	Password  string `json:"password" form:"password"`
+	Role      string `json:"role"`
 }
 
 type ListUsers []User
@@ -38,11 +40,11 @@ func SelectOneUsers(idUser int) User {
 	var user User
 
 	conn.QueryRow(context.Background(), `
-    SELECT id, email, password
+    SELECT id, profile_id, email, password, role
     FROM users
     WHERE
     id = $1
-  `, idUser).Scan(&user.Id, &user.Email, &user.Password)
+  `, idUser).Scan(&user.Id, &user.ProfileId, &user.Email, &user.Password, &user.Role)
 	return user
 }
 
@@ -50,7 +52,7 @@ func GetAllUsers(page int, limit int, orderBy string, order string) ListUsers {
 	conn := libs.DB()
 	defer conn.Close(context.Background())
 
-	modifyQuery := fmt.Sprintf("SELECT id, '' as fullname, email, password FROM users ORDER BY %s %s OFFSET $1 LIMIT $2", orderBy, order)
+	modifyQuery := fmt.Sprintf("SELECT id, profile_id, email, password, role FROM users ORDER BY %s %s OFFSET $1 LIMIT $2", orderBy, order)
 	offset := (page - 1) * limit
 	rows, err := conn.Query(context.Background(), modifyQuery, offset, limit)
 	if err != nil {
@@ -69,7 +71,7 @@ func SearchUserByEmail(email string) ListUsers {
 
 	emailSubstring := "%" + email + "%"
 	rows, err := conn.Query(context.Background(), `
-		SELECT users.id, '' as fullname, users.email, users.password
+		SELECT id, profile_id, email, password, role
 		FROM users
 		WHERE 
 		email ILIKE $1
@@ -98,16 +100,16 @@ func FindUserByEmail(email string) User {
 	return user
 }
 
-func AddUser(userData User) User {
+func AddUser(userData User, profile_id int) User {
 	conn := libs.DB()
 	defer conn.Close(context.Background())
 
 	var user User
 	conn.QueryRow(context.Background(), `
-		INSERT INTO users (email, password)
+		INSERT INTO users (profile_id, email, password, role)
 		values
-		($1, $2)
-	`, userData.Email, userData.Password).Scan(&user.Email, &user.Password)
+		($1, $2, $3, $4)
+	`, profile_id, userData.Email, userData.Password, userData.Role).Scan(&user.ProfileId, &user.Email, &user.Password)
 	return user
 }
 
@@ -117,9 +119,9 @@ func UpdateUser(userData User) User {
 
 	var updatedUser User
 	conn.QueryRow(context.Background(), `
-		UPDATE users SET email=$1, password=$2 WHERE id=$3
-		RETURNING id, email, password
-	`, userData.Email, userData.Password, userData.Id).Scan(&updatedUser.Id, &updatedUser.Email, &updatedUser.Password)
+		UPDATE users SET email=$1, password=$2 WHERE id=$4
+		RETURNING id, profile_id, email, password, role
+	`, userData.Email, userData.Password, userData.Role, userData.Id).Scan(&updatedUser.Id, &updatedUser.ProfileId, &updatedUser.Email, &updatedUser.Password, &updatedUser.Role)
 	return updatedUser
 }
 
@@ -131,8 +133,8 @@ func DropUser(id int) User {
 	conn.QueryRow(context.Background(), `
 		DELETE FROM users
 		WHERE id = $1
-		RETURNING id, email, password
-	`, id).Scan(&deletedUser.Id, &deletedUser.Email, &deletedUser.Password)
+		RETURNING id, profile_id, email, password, role
+	`, id).Scan(&deletedUser.Id, &deletedUser.ProfileId, &deletedUser.Email, &deletedUser.Password, &deletedUser.Role)
 	return deletedUser
 }
 
