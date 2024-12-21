@@ -5,12 +5,40 @@ import (
 	"funtastix/backend/models"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetAllProfiles(ctx *gin.Context) {
-	allProfiles := models.GetAllProfiles()
+	search := ctx.Query("search")
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "5"))
+	order := strings.ToLower(ctx.DefaultQuery("order", "ASC"))
+	orderBy := ctx.DefaultQuery("sort_by", "id")
+	allProfiles := models.GetAllProfiles(page, limit, orderBy, order)
+
+	if order != "ASC" {
+		order = "DESC"
+	}
+
+	foundProfile := models.SearchProfileByName(search)
+	if search != "" {
+		if len(foundProfile) == 1 {
+			ctx.JSON(http.StatusOK, models.Response{
+				Succsess: true,
+				Message:  "list all users",
+				Results:  foundProfile[0],
+			})
+			return
+		}
+		ctx.JSON(http.StatusOK, models.Response{
+			Succsess: true,
+			Message:  "list all users",
+			Results:  foundProfile,
+		})
+		return
+	}
 
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,

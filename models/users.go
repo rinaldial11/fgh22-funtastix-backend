@@ -27,6 +27,8 @@ type User struct {
 	Id int `json:"id"`
 	// Fullname string `json:"fullname" form:"fullname"`
 	ProfileId int    `json:"profileId" db:"profile_id"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
 	Email     string `json:"email" form:"email"`
 	Password  string `json:"password" form:"password"`
 	Role      string `json:"role"`
@@ -39,12 +41,16 @@ func SelectOneUsers(idUser int) User {
 	defer conn.Close(context.Background())
 	var user User
 
-	conn.QueryRow(context.Background(), `
-    SELECT id, profile_id, email, password, role
-    FROM users
+	err := conn.QueryRow(context.Background(), `
+    SELECT users.id, users.profile_id, profiles.first_name, profiles.last_name, users.email, users.password, users.role
+		FROM users
+    JOIN profiles ON users.profile_id = profiles.id
     WHERE
-    id = $1
-  `, idUser).Scan(&user.Id, &user.ProfileId, &user.Email, &user.Password, &user.Role)
+    users.id = $1
+  `, idUser).Scan(&user.Id, &user.ProfileId, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.Role)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return user
 }
 
@@ -52,7 +58,12 @@ func GetAllUsers(page int, limit int, orderBy string, order string) ListUsers {
 	conn := libs.DB()
 	defer conn.Close(context.Background())
 
-	modifyQuery := fmt.Sprintf("SELECT id, profile_id, email, password, role FROM users ORDER BY %s %s OFFSET $1 LIMIT $2", orderBy, order)
+	modifyQuery := fmt.Sprintf(` 
+		SELECT users.id, users.profile_id, profiles.first_name, profiles.last_name, users.email, users.password, users.role
+		FROM users
+    JOIN profiles ON users.profile_id = profiles.id
+		ORDER BY %s %s 
+		OFFSET $1 LIMIT $2`, orderBy, order)
 	offset := (page - 1) * limit
 	rows, err := conn.Query(context.Background(), modifyQuery, offset, limit)
 	if err != nil {
@@ -119,9 +130,9 @@ func UpdateUser(userData User) User {
 
 	var updatedUser User
 	conn.QueryRow(context.Background(), `
-		UPDATE users SET email=$1, password=$2 WHERE id=$4
+		UPDATE users SET email=$1, password=$2 WHERE id=$3
 		RETURNING id, profile_id, email, password, role
-	`, userData.Email, userData.Password, userData.Role, userData.Id).Scan(&updatedUser.Id, &updatedUser.ProfileId, &updatedUser.Email, &updatedUser.Password, &updatedUser.Role)
+	`, userData.Email, userData.Password, userData.Id).Scan(&updatedUser.Id, &updatedUser.ProfileId, &updatedUser.Email, &updatedUser.Password, &updatedUser.Role)
 	return updatedUser
 }
 

@@ -19,14 +19,13 @@ type Profile struct {
 
 type ListProfiles []Profile
 
-func GetAllProfiles() ListProfiles {
+func GetAllProfiles(page int, limit int, ordrerBy string, order string) ListProfiles {
 	conn := libs.DB()
 	defer conn.Close(context.Background())
 
-	rows, err := conn.Query(context.Background(), `
-		SELECT id, first_name, last_name, phone_number, point, picture 
-		FROM profiles
-	`)
+	modifyQuery := fmt.Sprintf("SELECT id, first_name, last_name, phone_number, point, picture FROM profiles ORDER BY %s %s OFFSET $1 LIMIT $2", ordrerBy, order)
+	offset := (page - 1) * limit
+	rows, err := conn.Query(context.Background(), modifyQuery, offset, limit)
 
 	if err != nil {
 		fmt.Println(err)
@@ -89,4 +88,25 @@ func DropProfile(id int) Profile {
 		RETURNING id, first_name, last_name, phone_number, point, picture
 	`, id).Scan(&deletedProfile.Id, &deletedProfile.FirstName, &deletedProfile.LastName, &deletedProfile.PhoneNumber, &deletedProfile.Point, &deletedProfile.Picture)
 	return deletedProfile
+}
+
+func SearchProfileByName(name string) ListProfiles {
+	conn := libs.DB()
+	defer conn.Close(context.Background())
+
+	nameSubstring := "%" + name + "%"
+	rows, err := conn.Query(context.Background(), `
+		SELECT id, first_name, last_name, phone_number, point, picture
+		FROM profiles
+		WHERE
+		first_name ILIKE $1
+	`, nameSubstring)
+	if err != nil {
+		fmt.Println(err)
+	}
+	profiles, err := pgx.CollectRows(rows, pgx.RowToStructByName[Profile])
+	if err != nil {
+		fmt.Println(err)
+	}
+	return profiles
 }

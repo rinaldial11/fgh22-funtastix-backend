@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"funtastix/backend/libs"
 	"funtastix/backend/models"
 	"net/http"
@@ -100,6 +101,7 @@ func UpdateUser(ctx *gin.Context) {
 			foundUser.Password = libs.CreateHash(foundUser.Password)
 		}
 	}
+	fmt.Println(foundUser)
 	updatedUser := models.UpdateUser(foundUser)
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
