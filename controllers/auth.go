@@ -46,6 +46,7 @@ func Register(ctx *gin.Context) {
 
 	profile := models.AddProfile()
 	models.AddUser(formUser, profile.Id)
+	// models.Register(formUser)
 
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
@@ -57,7 +58,6 @@ func Login(ctx *gin.Context) {
 	var form models.User
 	ctx.ShouldBind(&form)
 
-	// user := FindUserByEmail(form.Email)
 	user := models.FindUserByEmail(form.Email)
 	isValid := libs.HashValidator(form.Password, user.Password)
 	if isValid {

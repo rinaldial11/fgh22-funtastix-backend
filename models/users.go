@@ -162,3 +162,29 @@ func CountUser(search string) int {
 	`, titleSubstring).Scan(&total)
 	return total
 }
+
+// func Register(user User) User {
+// 	conn := libs.DB()
+// 	tx, err := conn.Begin(context.Background())
+// 	if err != nil {
+// 		defer tx.Rollback(context.Background())
+// 	}
+
+// 	var profileId int
+// 	tx.QueryRow(context.Background(), `
+// 		INSERT INTO profiles (first_name, last_name, phone_number, point, picture)
+// 		VALUES ('', '', '', '', '')
+// 		RETURNING id
+// 	`).Scan(&profileId)
+
+// 	var newUser User
+// 	tx.QueryRow(context.Background(), `
+// 		INSERT INTO users (profile_id, email, password, role)
+// 		values
+// 		($1, $2, $3, $4)
+// 		RETURNING id, profile_id, first_name, last_name, email, password, role
+// 	`, profileId, user.Email, user.Password, user.Role).Scan(&newUser.Id, &newUser.ProfileId, &newUser.FirstName, &newUser.LastName, &newUser.Email, &newUser.Password, &newUser.Role)
+// 	fmt.Println(newUser)
+// 	tx.Commit(context.Background())
+// 	return newUser
+// }

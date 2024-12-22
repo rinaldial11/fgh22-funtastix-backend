@@ -8,4 +8,5 @@ func Routers(router *gin.Engine) {
 	MovieRouter(router.Group("/movies"))
 	// MovieAdminRouter(router.Group("/movies"))
 	AuthRouter(router.Group("/auth"))
+	OrderRouter(router.Group("/orders"))
 }
