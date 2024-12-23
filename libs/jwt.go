@@ -1,19 +1,20 @@
 package libs
 
 import (
-	"os"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
-	"github.com/joho/godotenv"
 )
 
 func GenerateToken(payload any) string {
-	godotenv.Load()
-	var JWT_SECRET []byte = []byte(GetMD5Hash(os.Getenv("JWT_SECRET")))
-	sig, _ := jose.NewSigner(jose.SigningKey{Algorithm: jose.HS256, Key: JWT_SECRET}, (&jose.SignerOptions{}).WithType("JWT"))
+	JWT_SECRET := []byte(GetMD5Hash())
+	sig, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.HS256, Key: JWT_SECRET}, (&jose.SignerOptions{}).WithType("JWT"))
+	if err != nil {
+		fmt.Println(err)
+	}
 	baseInfo := jwt.Claims{
 		IssuedAt: jwt.NewNumericDate(time.Now()),
 	}
@@ -25,12 +26,11 @@ func GenerateToken(payload any) string {
 }
 
 func ValidateToken(head string) error {
-	godotenv.Load()
-	var SECRET_KEY = os.Getenv("SECRET_KEY")
+	JWT_SECRET := []byte(GetMD5Hash())
 	token := strings.Split(head, " ")[1:][0]
 	tok, _ := jwt.ParseSigned(token, []jose.SignatureAlgorithm{jose.HS256})
 	out := jwt.Claims{}
 
-	err := tok.Claims(SECRET_KEY, &out)
+	err := tok.Claims(JWT_SECRET, &out)
 	return err
 }

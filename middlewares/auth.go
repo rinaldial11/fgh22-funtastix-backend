@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"funtastix/backend/libs"
 	"funtastix/backend/models"
 	"net/http"
@@ -20,7 +21,7 @@ func ValidateToken() gin.HandlerFunc {
 			return
 		}
 		err := libs.ValidateToken(head)
-
+		fmt.Println(err)
 		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, models.Response{
 				Succsess: false,

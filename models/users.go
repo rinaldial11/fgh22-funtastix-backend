@@ -26,11 +26,11 @@ type Response struct {
 type User struct {
 	Id int `json:"id"`
 	// Fullname string `json:"fullname" form:"fullname"`
-	ProfileId int    `json:"profileId" db:"profile_id"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
+	ProfileId int    `json:"profileId,omitempty" db:"profile_id"`
+	FirstName string `json:"firstName,omitempty"`
+	LastName  string `json:"lastName,omitempty"`
 	Email     string `json:"email" form:"email"`
-	Password  string `json:"password" form:"password"`
+	Password  string `json:"password,omitempty" form:"password"`
 	Role      string `json:"role"`
 }
 

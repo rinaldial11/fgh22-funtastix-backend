@@ -29,7 +29,7 @@ func GetAllMovies(page int, limit int, orderBy string, order string) ListMovies 
 	defer conn.Close(context.Background())
 
 	offset := (page - 1) * limit
-	modifyQuery := fmt.Sprintf(`
+	query := fmt.Sprintf(`
   SELECT
     movies.id,
     movies.title,
@@ -52,7 +52,7 @@ func GetAllMovies(page int, limit int, orderBy string, order string) ListMovies 
   ORDER BY movies.%s %s
   OFFSET $1 LIMIT $2
   `, orderBy, order)
-	rows, err := conn.Query(context.Background(), modifyQuery, offset, limit)
+	rows, err := conn.Query(context.Background(), query, offset, limit)
 	if err != nil {
 		fmt.Println(err)
 	}

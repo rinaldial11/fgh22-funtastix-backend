@@ -17,7 +17,7 @@ func GetAllUsers(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "5"))
 	order := strings.ToLower(ctx.DefaultQuery("order", "ASC"))
 	orderBy := ctx.DefaultQuery("sort_by", "id")
-	count := models.CountUser(search)
+	// count := models.CountUser(search)
 	allUsers := models.GetAllUsers(page, limit, orderBy, order)
 
 	if order != "ASC" {
@@ -30,24 +30,24 @@ func GetAllUsers(ctx *gin.Context) {
 			ctx.JSON(http.StatusOK, models.Response{
 				Succsess: true,
 				Message:  "list all users",
-				PageInfo: models.PageInfo(libs.GetPageInfo(page, limit, count)),
-				Results:  foundUser[0],
+				// PageInfo: models.PageInfo(libs.GetPageInfo(page, limit, count)),
+				Results: foundUser[0],
 			})
 			return
 		}
 		ctx.JSON(http.StatusOK, models.Response{
 			Succsess: true,
 			Message:  "list all users",
-			PageInfo: models.PageInfo(libs.GetPageInfo(page, limit, count)),
-			Results:  foundUser,
+			// PageInfo: models.PageInfo(libs.GetPageInfo(page, limit, count)),
+			Results: foundUser,
 		})
 		return
 	}
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
 		Message:  "list all users",
-		PageInfo: models.PageInfo(libs.GetPageInfo(page, limit, count)),
-		Results:  allUsers,
+		// PageInfo: models.PageInfo(libs.GetPageInfo(page, limit, count)),
+		Results: allUsers,
 	})
 }
 
@@ -106,7 +106,12 @@ func UpdateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
 		Message:  "user updated",
-		Results:  updatedUser,
+		Results: models.User{
+			Id:        updatedUser.Id,
+			ProfileId: updatedUser.ProfileId,
+			Email:     updatedUser.Email,
+			Role:      updatedUser.Role,
+		},
 	})
 }
 
