@@ -20,15 +20,15 @@ func ValidateToken() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-		err := libs.ValidateToken(head)
-		fmt.Println(err)
+		claims, err := libs.ValidateToken(head)
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, models.Response{
+			fmt.Println(err.Error())
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{
 				Succsess: false,
-				Message:  "Unauthorized",
+				Message:  "Unexpected error",
 			})
-			ctx.Abort()
 		}
+		ctx.Set("claims", claims)
 
 		ctx.Next()
 	}

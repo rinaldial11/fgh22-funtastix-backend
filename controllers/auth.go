@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"funtastix/backend/libs"
 	"funtastix/backend/models"
 	"net/http"
@@ -56,7 +57,16 @@ func Register(ctx *gin.Context) {
 
 func Login(ctx *gin.Context) {
 	var form models.User
-	ctx.ShouldBind(&form)
+	err := ctx.ShouldBind(&form)
+	if err != nil {
+		fmt.Println(err)
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Succsess: false,
+			Message:  "Unexpected error",
+		})
+	}
+
+	fmt.Println(form.Email)
 
 	user := models.FindUserByEmail(form.Email)
 	isValid := libs.HashValidator(form.Password, user.Password)

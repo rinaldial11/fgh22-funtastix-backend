@@ -24,13 +24,13 @@ type Response struct {
 }
 
 type User struct {
-	Id int `json:"id"`
+	Id int `json:"id" db:"id"`
 	// Fullname string `json:"fullname" form:"fullname"`
 	ProfileId int    `json:"profileId,omitempty" db:"profile_id"`
 	FirstName string `json:"firstName,omitempty"`
 	LastName  string `json:"lastName,omitempty"`
-	Email     string `json:"email" form:"email"`
-	Password  string `json:"password,omitempty" form:"password"`
+	Email     string `json:"email" form:"email" db:"email"`
+	Password  string `json:"password,omitempty" form:"password" db:"password"`
 	Role      string `json:"role"`
 }
 
@@ -100,14 +100,16 @@ func SearchUserByEmail(email string) ListUsers {
 func FindUserByEmail(email string) User {
 	conn := libs.DB()
 	defer conn.Close(context.Background())
-
 	var user User
-	conn.QueryRow(context.Background(), `
+	err := conn.QueryRow(context.Background(), `
 		SELECT id, email, password
 		FROM users
 		WHERE
 		email = $1
 	`, email).Scan(&user.Id, &user.Email, &user.Password)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return user
 }
 

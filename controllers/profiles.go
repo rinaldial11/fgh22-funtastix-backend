@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
+	"funtastix/backend/libs"
 	"funtastix/backend/models"
 	"net/http"
 	"strconv"
@@ -100,4 +102,41 @@ func GetProfileById(ctx *gin.Context) {
 		Message:  "Details user",
 		Results:  foundProfile,
 	})
+}
+
+func GetCurrentProfile(ctx *gin.Context) {
+	claims, _ := ctx.Get("claims")
+	claimsJson, err := json.Marshal(claims)
+	if err != nil {
+		fmt.Println(err)
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Succsess: false,
+			Message:  "Unexpected error",
+		})
+	}
+
+	var claimsStruct libs.ClaimsWithPayload
+	err = json.Unmarshal(claimsJson, &claimsStruct)
+	if err != nil {
+		fmt.Println(err)
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Succsess: false,
+			Message:  "Unexpected error",
+		})
+	}
+	// userId := int(val.(float64))
+	if claimsStruct.UserID == 0 {
+		ctx.JSON(http.StatusForbidden, models.Response{
+			Succsess: false,
+			Message:  "Invalid token",
+		})
+	}
+	profile := models.SelectOneProfile(claimsStruct.UserID)
+	// if isAvail {,
+	ctx.JSON(http.StatusOK, models.Response{
+		Succsess: true,
+		Message:  "profile",
+		Results:  profile,
+	})
+	// }
 }
