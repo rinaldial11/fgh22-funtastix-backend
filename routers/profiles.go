@@ -11,5 +11,5 @@ func ProfileRouter(router *gin.RouterGroup) {
 	router.Use(middlewares.ValidateToken())
 	router.GET("", controllers.GetCurrentProfile)
 	router.GET("/:id", controllers.GetProfileById)
-	router.PATCH("/:id", controllers.EditProfile)
+	router.PATCH("", controllers.EditProfile)
 }

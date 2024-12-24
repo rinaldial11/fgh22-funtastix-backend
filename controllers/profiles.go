@@ -50,26 +50,45 @@ func GetAllProfiles(ctx *gin.Context) {
 }
 
 func EditProfile(ctx *gin.Context) {
-	id, _ := strconv.Atoi(ctx.Param("id"))
-	foundProfile := models.SelectOneProfile(id)
-
-	if foundProfile == (models.Profile{}) {
-		ctx.JSON(http.StatusNotFound, models.Response{
+	claims, _ := ctx.Get("claims")
+	claimsJson, err := json.Marshal(claims)
+	if err != nil {
+		fmt.Println(err)
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Succsess: false,
-			Message:  "profile not found",
+			Message:  "Unexpected error",
 		})
-		return
 	}
-	// ctx.ShouldBind(&foundProfile)
-	if err := ctx.ShouldBind(&foundProfile); err != nil {
+	var claimsStruct libs.ClaimsWithPayload
+	err = json.Unmarshal(claimsJson, &claimsStruct)
+	if err != nil {
+		fmt.Println(err)
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Succsess: false,
+			Message:  "Unexpected error",
+		})
+	}
+	if claimsStruct.UserID == 0 {
+		ctx.JSON(http.StatusForbidden, models.Response{
+			Succsess: false,
+			Message:  "Invalid token",
+		})
+	}
+	profile := models.SelectOneProfile(claimsStruct.UserID)
+
+	err = ctx.ShouldBind(&profile)
+	if err != nil {
 		ctx.JSON(http.StatusBadRequest, models.Response{
 			Succsess: false,
 			Message:  "Invalid input data",
 		})
 		return
 	}
+	if profile.Point == "" {
+		profile.Point = "0"
+	}
 
-	updatedProfile := models.EditProfile(foundProfile)
+	updatedProfile := models.EditProfile(profile)
 	if updatedProfile == (models.Profile{}) {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Succsess: false,
@@ -77,7 +96,7 @@ func EditProfile(ctx *gin.Context) {
 		})
 		return
 	}
-	fmt.Println(updatedProfile)
+	// fmt.Println(updatedProfile)
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
 		Message:  "profile updated",
@@ -124,7 +143,6 @@ func GetCurrentProfile(ctx *gin.Context) {
 			Message:  "Unexpected error",
 		})
 	}
-	// userId := int(val.(float64))
 	if claimsStruct.UserID == 0 {
 		ctx.JSON(http.StatusForbidden, models.Response{
 			Succsess: false,
@@ -132,11 +150,12 @@ func GetCurrentProfile(ctx *gin.Context) {
 		})
 	}
 	profile := models.SelectOneProfile(claimsStruct.UserID)
-	// if isAvail {,
+	if profile.Point == "" {
+		profile.Point = "0"
+	}
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
 		Message:  "profile",
 		Results:  profile,
 	})
-	// }
 }
