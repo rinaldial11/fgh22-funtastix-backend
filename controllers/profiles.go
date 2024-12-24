@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func GetAllProfiles(ctx *gin.Context) {
@@ -52,6 +53,7 @@ func GetAllProfiles(ctx *gin.Context) {
 func EditProfile(ctx *gin.Context) {
 	claims, _ := ctx.Get("claims")
 	claimsJson, err := json.Marshal(claims)
+	file, _ := ctx.FormFile("image")
 	if err != nil {
 		fmt.Println(err)
 		ctx.JSON(http.StatusInternalServerError, models.Response{
@@ -74,9 +76,26 @@ func EditProfile(ctx *gin.Context) {
 			Message:  "Invalid token",
 		})
 	}
-	profile := models.SelectOneProfile(claimsStruct.UserID)
 
+	profile := models.SelectOneProfile(claimsStruct.UserID)
 	err = ctx.ShouldBind(&profile)
+
+	if file != nil {
+		filename := uuid.New().String()
+		splitedfilename := strings.Split(file.Filename, ".")
+		ext := splitedfilename[len(splitedfilename)-1]
+		if ext != "jpg" && ext != "png" && ext != "jpeg" {
+			ctx.JSON(http.StatusBadRequest, models.Response{
+				Succsess: false,
+				Message:  "wrong file format",
+			})
+			return
+		}
+		storedFile := fmt.Sprintf("%s.%s", filename, ext)
+		ctx.SaveUploadedFile(file, fmt.Sprintf("uploads/profile/%s", storedFile))
+		profile.Picture = storedFile
+	}
+
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, models.Response{
 			Succsess: false,

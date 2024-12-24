@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"funtastix/backend/libs"
 	"funtastix/backend/models"
@@ -71,16 +72,31 @@ func GetUserById(ctx *gin.Context) {
 }
 
 func UpdateUser(ctx *gin.Context) {
-	idUser, _ := strconv.Atoi(ctx.Param("id"))
-	foundUser := models.SelectOneUsers(idUser)
-	if foundUser == (models.User{}) {
-		ctx.JSON(http.StatusNotFound, models.Response{
+	claims, _ := ctx.Get("claims")
+	claimsJson, err := json.Marshal(claims)
+	if err != nil {
+		fmt.Println(err)
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Succsess: false,
-			Message:  "user not found",
+			Message:  "Unexpected error",
 		})
-		return
 	}
-
+	var claimsStruct libs.ClaimsWithPayload
+	err = json.Unmarshal(claimsJson, &claimsStruct)
+	if err != nil {
+		fmt.Println(err)
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Succsess: false,
+			Message:  "Unexpected error",
+		})
+	}
+	if claimsStruct.UserID == 0 {
+		ctx.JSON(http.StatusForbidden, models.Response{
+			Succsess: false,
+			Message:  "Invalid token",
+		})
+	}
+	foundUser := models.SelectOneUsers(claimsStruct.UserID)
 	ctx.ShouldBind(&foundUser)
 	if len(foundUser.Email) < 8 || !strings.Contains(foundUser.Email, "@") {
 		ctx.JSON(http.StatusBadRequest, models.Response{
@@ -169,5 +185,38 @@ func CreateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
 		Message:  "register success",
+	})
+}
+
+func GetCurrentUser(ctx *gin.Context) {
+	claims, _ := ctx.Get("claims")
+	claimsJson, err := json.Marshal(claims)
+	if err != nil {
+		fmt.Println(err)
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Succsess: false,
+			Message:  "Unexpected error",
+		})
+	}
+	var claimsStruct libs.ClaimsWithPayload
+	err = json.Unmarshal(claimsJson, &claimsStruct)
+	if err != nil {
+		fmt.Println(err)
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Succsess: false,
+			Message:  "Unexpected error",
+		})
+	}
+	if claimsStruct.UserID == 0 {
+		ctx.JSON(http.StatusForbidden, models.Response{
+			Succsess: false,
+			Message:  "Invalid token",
+		})
+	}
+	foundUser := models.SelectOneUsers(claimsStruct.UserID)
+	ctx.JSON(http.StatusOK, models.Response{
+		Succsess: true,
+		Message:  "user",
+		Results:  foundUser,
 	})
 }

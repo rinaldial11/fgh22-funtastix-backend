@@ -9,9 +9,9 @@ import (
 
 func UserRouter(router *gin.RouterGroup) {
 	router.Use(middlewares.ValidateToken())
-	router.GET("", controllers.GetAllUsers)
+	router.GET("", controllers.GetCurrentUser)
 	router.GET("/:id", controllers.GetUserById)
-	router.PATCH("/:id", controllers.UpdateUser)
+	router.PATCH("", controllers.UpdateUser)
 	router.DELETE("/:id", controllers.DeleteUser)
 	router.POST("", controllers.CreateUser)
 }

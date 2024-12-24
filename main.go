@@ -9,7 +9,7 @@ import (
 func main() {
 	route := gin.Default()
 
-	route.Static("/movies/images", "uploads/movies")
+	route.Static("/profile/images", "uploads/profile")
 	route.MaxMultipartMemory = 2 << 20
 
 	routers.Routers(route)
