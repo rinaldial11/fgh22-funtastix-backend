@@ -18,8 +18,9 @@ type Movie struct {
 	Author      string    `json:"author" form:"author"`
 	Duration    string    `json:"duration" form:"duration"`
 	Synopsis    string    `json:"synopsis" form:"synopsis"`
-	Genre       []string  `json:"genre"`
-	Cast        []string  `json:"casts"`
+	Genre       any       `json:"genre"`
+	Cast        any       `json:"casts"`
+	UploadedBy  any       `json:"uploadedBy"`
 }
 
 type ListMovies []Movie
@@ -42,11 +43,13 @@ func GetAllMovies(page int, limit int, orderBy string, order string) ListMovies 
   ARRAY_AGG(
         DISTINCT movie_genre.genre_name
   ) AS genre,
-  ARRAY_AGG(DISTINCT movie_cast.cast_name) AS cast
+  ARRAY_AGG(DISTINCT movie_cast.cast_name) AS cast,
+  ARRAY_AGG(DISTINCT users.email) as uploaded_by
   FROM
     movies
   JOIN movie_genre ON movies.id = movie_genre.movie_id
   JOIN movie_cast ON movies.id = movie_cast.movie_id
+  JOIN users ON movies.uploaded_by = users.id
   GROUP BY
     movies.id
   ORDER BY movies.%s %s
@@ -81,15 +84,17 @@ func SelectOneMovie(id int) Movie {
   ARRAY_AGG(
         DISTINCT movie_genre.genre_name
   ) AS genre,
-  ARRAY_AGG(DISTINCT movie_cast.cast_name) AS cast
+  ARRAY_AGG(DISTINCT movie_cast.cast_name) AS cast, 
+  ARRAY_AGG(DISTINCT users.email) as uploaded_by
   FROM
     movies
   JOIN movie_genre ON movies.id = movie_genre.movie_id
   JOIN movie_cast ON movies.id = movie_cast.movie_id
+  JOIN users ON movies.uploaded_by = users.id
   WHERE movies.id = $1
   GROUP BY
     movies.id
-  `, id).Scan(&movie.Id, &movie.Title, &movie.Image, &movie.Banner, &movie.ReleaseDate, &movie.Author, &movie.Duration, &movie.Synopsis, &movie.Genre, &movie.Cast)
+  `, id).Scan(&movie.Id, &movie.Title, &movie.Image, &movie.Banner, &movie.ReleaseDate, &movie.Author, &movie.Duration, &movie.Synopsis, &movie.Genre, &movie.Cast, &movie.UploadedBy)
 	return movie
 }
 
@@ -111,11 +116,13 @@ func SearchMovieByTitle(title string, page int, limit int, orderBy string, order
   ARRAY_AGG(
         DISTINCT movie_genre.genre_name
   ) AS genre,
-  ARRAY_AGG(DISTINCT movie_cast.cast_name) AS cast
+  ARRAY_AGG(DISTINCT movie_cast.cast_name) AS cast, 
+  ARRAY_AGG(DISTINCT users.email) as uploaded_by
   FROM
     movies
   JOIN movie_genre ON movies.id = movie_genre.movie_id
   JOIN movie_cast ON movies.id = movie_cast.movie_id
+  JOIN users ON movies.uploaded_by = users.id
   WHERE 
     movies.title ILIKE $1
   GROUP BY

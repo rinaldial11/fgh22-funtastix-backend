@@ -54,9 +54,17 @@ func GetMovieById(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	movie := models.SelectOneMovie(id)
 
+	if movie == (models.Movie{}) {
+		ctx.JSON(http.StatusNotFound, models.Response{
+			Succsess: false,
+			Message:  "movie not found",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
-		Message:  "List all movies",
+		Message:  "details movie",
 		Results:  movie,
 	})
 }
