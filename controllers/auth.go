@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"funtastix/backend/dto"
 	"funtastix/backend/libs"
 	"funtastix/backend/models"
 	"net/http"
@@ -10,8 +11,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Register godoc
+// @Summary Register
+// @Schemes
+// @Description Register account
+// @Tags auth
+// @Accept x-www-form-urlencoded
+// @Produce json
+// @Param formUser formData dto.AuthDTO true "form register"
+// @Success 200 {object} models.Response
+// @Router /auth/register [post]
 func Register(ctx *gin.Context) {
-	var formUser models.User
+	var formUser dto.AuthDTO
 	ctx.ShouldBind(&formUser)
 	found := models.FindUserByEmail(strings.ToLower(formUser.Email))
 	if found != (models.User{}) {
@@ -38,11 +49,11 @@ func Register(ctx *gin.Context) {
 	hasher := libs.CreateHash(formUser.Password)
 	formUser.Email = strings.ToLower(formUser.Email)
 
-	if strings.Contains(formUser.Email, "admin") {
-		formUser.Role = "admin"
-	} else {
-		formUser.Role = "user"
-	}
+	// if strings.Contains(formUser.Email, "admin") {
+	// 	formUser.Role = "admin"
+	// } else {
+	// 	formUser.Role = "user"
+	// }
 	formUser.Password = hasher
 
 	profile := models.AddProfile()
@@ -55,8 +66,18 @@ func Register(ctx *gin.Context) {
 	})
 }
 
+// Login godoc
+// @Summary Login
+// @Schemes
+// @Description Login authentication
+// @Tags auth
+// @Accept x-www-form-urlencoded
+// @Produce json
+// @Param form formData dto.AuthDTO true "form login"
+// @Success 200 {object} models.Response
+// @Router /auth/login [post]
 func Login(ctx *gin.Context) {
-	var form models.User
+	var form dto.AuthDTO
 	err := ctx.ShouldBind(&form)
 	if err != nil {
 		fmt.Println(err)
@@ -65,8 +86,6 @@ func Login(ctx *gin.Context) {
 			Message:  "Unexpected error",
 		})
 	}
-
-	fmt.Println(form.Email)
 
 	user := models.FindUserByEmail(form.Email)
 	isValid := libs.HashValidator(form.Password, user.Password)

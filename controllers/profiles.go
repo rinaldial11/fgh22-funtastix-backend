@@ -3,8 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"funtastix/backend/dto"
 	"funtastix/backend/libs"
 	"funtastix/backend/models"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -50,10 +52,22 @@ func GetAllProfiles(ctx *gin.Context) {
 	})
 }
 
+// Edit Profile godoc
+// @Schemes
+// @Summary Edit profile
+// @Description Edit current logged in profile
+// @Tags profiles
+// @Accept mpfd
+// @Produce json
+// @Param foundUser formData dto.ProfileDTO true "profile user"
+// @Param picture formData file false "profile user"
+// @Success 200 {object} models.Response{results=models.Profile}
+// @Security ApiKeyAuth
+// @Router /profiles [patch]
 func EditProfile(ctx *gin.Context) {
 	claims, _ := ctx.Get("claims")
 	claimsJson, err := json.Marshal(claims)
-	file, _ := ctx.FormFile("image")
+	picture, _ := ctx.FormFile("picture")
 	if err != nil {
 		fmt.Println(err)
 		ctx.JSON(http.StatusInternalServerError, models.Response{
@@ -76,13 +90,42 @@ func EditProfile(ctx *gin.Context) {
 			Message:  "Invalid token",
 		})
 	}
+	foundUser := models.SelectOneUsers(claimsStruct.UserID)
+	ctx.ShouldBind(&foundUser)
+	if len(foundUser.Email) < 8 || !strings.Contains(foundUser.Email, "@") {
+		ctx.JSON(http.StatusBadRequest, models.Response{
+			Succsess: false,
+			Message:  "email must be 8 character and contains @",
+		})
+		return
+	}
+	if !strings.Contains(foundUser.Password, "$argon2i$v=19$m=65536,t=1") {
+		if foundUser.Password != "" {
+			if len(foundUser.Password) < 6 {
+				ctx.JSON(http.StatusBadRequest, models.Response{
+					Succsess: false,
+					Message:  "password length at least 6 chatacter",
+				})
+				return
+			}
+			foundUser.Password = libs.CreateHash(foundUser.Password)
+		}
+	}
+	models.UpdateUser(foundUser, claimsStruct.UserID)
+	foundUser = models.SelectOneProfile(claimsStruct.UserID)
 
-	profile := models.SelectOneProfile(claimsStruct.UserID)
-	err = ctx.ShouldBind(&profile)
+	if err = ctx.ShouldBind(&foundUser); err != nil {
+		log.Println("---------------------", err)
+		ctx.JSON(http.StatusBadRequest, models.Response{
+			Succsess: false,
+			Message:  "Invalid input data",
+		})
+		return
+	}
 
-	if file != nil {
+	if picture != nil {
 		filename := uuid.New().String()
-		splitedfilename := strings.Split(file.Filename, ".")
+		splitedfilename := strings.Split(picture.Filename, ".")
 		ext := splitedfilename[len(splitedfilename)-1]
 		if ext != "jpg" && ext != "png" && ext != "jpeg" {
 			ctx.JSON(http.StatusBadRequest, models.Response{
@@ -92,22 +135,15 @@ func EditProfile(ctx *gin.Context) {
 			return
 		}
 		storedFile := fmt.Sprintf("%s.%s", filename, ext)
-		ctx.SaveUploadedFile(file, fmt.Sprintf("uploads/profile/%s", storedFile))
-		profile.Picture = storedFile
+		ctx.SaveUploadedFile(picture, fmt.Sprintf("uploads/profile/%s", storedFile))
+		foundUser.Picture = storedFile
 	}
 
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, models.Response{
-			Succsess: false,
-			Message:  "Invalid input data",
-		})
-		return
-	}
-	if profile.Point == "" {
-		profile.Point = "0"
+	if foundUser.Point == "" {
+		foundUser.Point = "0"
 	}
 
-	updatedProfile := models.EditProfile(profile)
+	updatedProfile := models.EditProfile(foundUser, claimsStruct.UserID)
 	if updatedProfile == (models.Profile{}) {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Succsess: false,
@@ -115,7 +151,6 @@ func EditProfile(ctx *gin.Context) {
 		})
 		return
 	}
-	// fmt.Println(updatedProfile)
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
 		Message:  "profile updated",
@@ -127,7 +162,7 @@ func GetProfileById(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	foundProfile := models.SelectOneProfile(id)
 
-	if foundProfile == (models.Profile{}) {
+	if foundProfile == (dto.ProfileDTO{}) {
 		ctx.JSON(http.StatusNotFound, models.Response{
 			Succsess: false,
 			Message:  "profile not found",
@@ -142,6 +177,15 @@ func GetProfileById(ctx *gin.Context) {
 	})
 }
 
+// Profile godoc
+// @Summary Profile Info
+// @Description Get current logged in profile info
+// @Tags profiles
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Response{results=models.Profile}
+// @Security ApiKeyAuth
+// @Router /profiles [get]
 func GetCurrentProfile(ctx *gin.Context) {
 	claims, _ := ctx.Get("claims")
 	claimsJson, err := json.Marshal(claims)
@@ -168,13 +212,13 @@ func GetCurrentProfile(ctx *gin.Context) {
 			Message:  "Invalid token",
 		})
 	}
-	profile := models.SelectOneProfile(claimsStruct.UserID)
+	profile := models.SelectCurrentProfile(claimsStruct.UserID)
 	if profile.Point == "" {
 		profile.Point = "0"
 	}
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
-		Message:  "profile",
+		Message:  "Profile info",
 		Results:  profile,
 	})
 }

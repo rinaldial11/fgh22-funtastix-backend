@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"funtastix/backend/dto"
 	"funtastix/backend/libs"
 	"funtastix/backend/models"
 	"net/http"
@@ -30,7 +31,7 @@ func GetAllOrders(ctx *gin.Context) {
 }
 
 func AddOrder(ctx *gin.Context) {
-	var order models.OrderInput
+	var order dto.OrderDTO
 	claims, _ := ctx.Get("claims")
 	claimsJson, err := json.Marshal(claims)
 	if err != nil {
@@ -58,13 +59,37 @@ func AddOrder(ctx *gin.Context) {
 	}
 	ctx.ShouldBind(&order)
 	order.UserId = claimsStruct.UserID
-	fmt.Println(order)
 	orderID := models.AddOrder(order)
-	newOrder := models.SelectOneOrder(orderID.Id)
+	newOrder := models.SelectOneOrderFirst(orderID)
 
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
-		Message:  "please pay your order as soon as posible",
+		Message:  "Choose your seat",
 		Results:  newOrder,
 	})
+}
+
+func GetAllPaymentMethods(ctx *gin.Context) {
+	paymentMethods := models.GetAllPaymentMethods()
+
+	ctx.JSON(http.StatusOK, models.Response{
+		Succsess: true,
+		Message:  "List all payment methods",
+		Results:  paymentMethods,
+	})
+}
+
+func GetAllSeats(ctx *gin.Context) {
+	seats := models.GetAllSeats()
+
+	ctx.JSON(http.StatusOK, models.Response{
+		Succsess: true,
+		Message:  "Seats layout info",
+		Results:  seats,
+	})
+}
+
+func AddSeatOrder(ctx *gin.Context) {
+	var seatForm dto.OrderSeatDTO
+	ctx.ShouldBind(&seatForm)
 }

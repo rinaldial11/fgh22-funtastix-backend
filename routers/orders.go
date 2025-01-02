@@ -11,4 +11,6 @@ func OrderRouter(router *gin.RouterGroup) {
 	router.Use(middlewares.ValidateToken())
 	router.GET("", controllers.GetAllOrders)
 	router.POST("", controllers.AddOrder)
+	router.GET("/payment-methods", controllers.GetAllPaymentMethods)
+	router.GET("/seats", controllers.GetAllSeats)
 }

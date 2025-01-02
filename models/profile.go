@@ -3,18 +3,20 @@ package models
 import (
 	"context"
 	"fmt"
+	"funtastix/backend/dto"
 	"funtastix/backend/libs"
 
 	"github.com/jackc/pgx/v5"
 )
 
 type Profile struct {
-	Id          int    `json:"id"`
-	FirstName   string `json:"firstName" form:"first_name"`
-	LastName    string `json:"lastName" form:"last_name"`
-	PhoneNumber string `json:"phoneNumber" form:"phone_number"`
-	Point       string `json:"point" form:"point"`
-	Picture     string `json:"picture" form:"picture"`
+	Id          int    `json:"id" example:"1"`
+	FirstName   string `json:"firstName" example:"Budiono"`
+	LastName    string `json:"lastName" example:"Siregar"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phoneNumber" example:"08516839587"`
+	Point       string `json:"point" example:"0"`
+	Picture     string `json:"picture" example:"03f91853-f686-4190-a854-06f32dc17da7.jpeg"`
 }
 
 type ListProfiles []Profile
@@ -50,7 +52,7 @@ func AddProfile() Profile {
 	return profile
 }
 
-func EditProfile(profileData Profile) Profile {
+func EditProfile(profileData dto.ProfileDTO, userId int) Profile {
 	conn := libs.DB()
 	defer conn.Close(context.Background())
 
@@ -59,21 +61,26 @@ func EditProfile(profileData Profile) Profile {
 		UPDATE profiles SET first_name=$1, last_name=$2, phone_number=$3, point=$4, picture=$5
 		WHERE id=$6
 		RETURNING id, first_name, last_name, phone_number, point, picture
-	`, profileData.FirstName, profileData.LastName, profileData.PhoneNumber, profileData.Point, profileData.Picture, profileData.Id).Scan(&editedProfile.Id, &editedProfile.FirstName, &editedProfile.LastName, &editedProfile.PhoneNumber, &editedProfile.Point, &editedProfile.Picture)
+	`, profileData.FirstName, profileData.LastName, profileData.PhoneNumber, profileData.Point, profileData.Picture, userId).Scan(&editedProfile.Id, &editedProfile.FirstName, &editedProfile.LastName, &editedProfile.PhoneNumber, &editedProfile.Point, &editedProfile.Picture)
 	return editedProfile
 }
 
-func SelectOneProfile(idProfile int) Profile {
+func SelectOneProfile(idProfile int) dto.ProfileDTO {
 	conn := libs.DB()
 	defer conn.Close(context.Background())
 
-	var profile Profile
-	conn.QueryRow(context.Background(), `
-		SELECT id, first_name, last_name, phone_number, point, picture
+	var profile dto.ProfileDTO
+	err := conn.QueryRow(context.Background(), `
+		SELECT first_name, last_name, users.email as email, phone_number, point, picture
 		FROM profiles
+		JOIN
+			users ON profiles.id = users.profile_id
 		WHERE
-		id = $1
-	`, idProfile).Scan(&profile.Id, &profile.FirstName, &profile.LastName, &profile.PhoneNumber, &profile.Point, &profile.Picture)
+		profiles.id = $1
+	`, idProfile).Scan(&profile.FirstName, &profile.LastName, &profile.Email, &profile.PhoneNumber, &profile.Point, &profile.Picture)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return profile
 }
 
@@ -109,4 +116,23 @@ func SearchProfileByName(name string) ListProfiles {
 		fmt.Println(err)
 	}
 	return profiles
+}
+
+func SelectCurrentProfile(idProfile int) Profile {
+	conn := libs.DB()
+	defer conn.Close(context.Background())
+
+	var profile Profile
+	err := conn.QueryRow(context.Background(), `
+		SELECT users.id, first_name, last_name, users.email as email, phone_number, point, picture
+		FROM profiles
+		JOIN
+			users ON profiles.id = users.profile_id
+		WHERE
+		profiles.id = $1
+	`, idProfile).Scan(&profile.Id, &profile.FirstName, &profile.LastName, &profile.Email, &profile.PhoneNumber, &profile.Point, &profile.Picture)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return profile
 }

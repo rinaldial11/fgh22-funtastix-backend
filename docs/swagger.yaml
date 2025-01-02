@@ -1,0 +1,361 @@
+basePath: /
+definitions:
+  models.Movie:
+    properties:
+      author:
+        example: Anthony Russo, Joe Russo
+        type: string
+      banner:
+        example: example/avengers.jpg
+        type: string
+      casts: {}
+      duration:
+        example: "03:02:00"
+        type: string
+      genre: {}
+      id:
+        example: 1
+        type: integer
+      image:
+        example: example/avengers.jpg
+        type: string
+      releaseDate:
+        example: "2018-12-12"
+        type: string
+      synopsis:
+        example: 'The Avengers assemble to reverse the damage caused by Thanos in
+          Avengers: Infinity War.'
+        type: string
+      title:
+        example: 'Avengers : Endgame'
+        type: string
+      uploadedBy: {}
+    type: object
+  models.MovieHome:
+    properties:
+      genre: {}
+      id:
+        example: 1
+        type: integer
+      image:
+        example: example/avengers.jpg
+        type: string
+      title:
+        example: 'Avengers : Endgame'
+        type: string
+    type: object
+  models.Profile:
+    properties:
+      email:
+        type: string
+      firstName:
+        example: Budiono
+        type: string
+      id:
+        example: 1
+        type: integer
+      lastName:
+        example: Siregar
+        type: string
+      phoneNumber:
+        example: "08516839587"
+        type: string
+      picture:
+        example: 03f91853-f686-4190-a854-06f32dc17da7.jpeg
+        type: string
+      point:
+        example: "0"
+        type: string
+    type: object
+  models.Response:
+    properties:
+      message:
+        type: string
+      pageInfo: {}
+      results: {}
+      success:
+        type: boolean
+    type: object
+host: 172.16.211.131:8888
+info:
+  contact: {}
+  description: Funtastix backend-app.
+  title: Funtastix
+  version: 1.0.0
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Login authentication
+      parameters:
+      - in: formData
+        name: email
+        required: true
+        type: string
+      - in: formData
+        minLength: 5
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Login
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Register account
+      parameters:
+      - in: formData
+        name: email
+        required: true
+        type: string
+      - in: formData
+        minLength: 5
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Register
+      tags:
+      - auth
+  /movies:
+    get:
+      consumes:
+      - application/json
+      description: get all movies
+      parameters:
+      - description: Search
+        in: query
+        name: search
+        type: string
+      - description: Page
+        in: query
+        name: page
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                results:
+                  items:
+                    $ref: '#/definitions/models.MovieHome'
+                  type: array
+              type: object
+      summary: List Movies
+      tags:
+      - movies
+    post:
+      consumes:
+      - multipart/form-data
+      description: Add movie
+      parameters:
+      - in: formData
+        name: author
+        type: string
+      - collectionFormat: csv
+        in: formData
+        items:
+          type: string
+        name: cast_name
+        required: true
+        type: array
+      - in: formData
+        name: duration
+        type: string
+      - collectionFormat: csv
+        in: formData
+        items:
+          type: string
+        name: genre_name
+        required: true
+        type: array
+      - in: formData
+        name: release_date
+        type: string
+      - in: formData
+        name: synopsis
+        type: string
+      - in: formData
+        name: title
+        type: string
+      - description: add image
+        in: formData
+        name: image
+        type: file
+      - description: add banner
+        in: formData
+        name: banner
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                results:
+                  $ref: '#/definitions/models.Movie'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Add movie
+      tags:
+      - movies
+  /movies/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete movie
+      parameters:
+      - description: movie id
+        in: path
+        name: id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                results:
+                  $ref: '#/definitions/models.Movie'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete movie
+      tags:
+      - movies
+    get:
+      consumes:
+      - application/json
+      description: Get movie details
+      parameters:
+      - description: movie id
+        in: path
+        name: id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                results:
+                  $ref: '#/definitions/models.Movie'
+              type: object
+      summary: Movie Details
+      tags:
+      - movies
+  /profiles:
+    get:
+      consumes:
+      - application/json
+      description: Get current logged in profile info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                results:
+                  $ref: '#/definitions/models.Profile'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Profile Info
+      tags:
+      - profiles
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Edit current logged in profile
+      parameters:
+      - in: formData
+        name: confirm_password
+        required: true
+        type: string
+      - in: formData
+        name: email
+        required: true
+        type: string
+      - in: formData
+        minLength: 3
+        name: first_name
+        type: string
+      - in: formData
+        minLength: 3
+        name: last_name
+        type: string
+      - in: formData
+        minLength: 6
+        name: password
+        required: true
+        type: string
+      - in: formData
+        name: phone_number
+        type: string
+      - in: formData
+        name: point
+        type: string
+      - description: profile user
+        in: formData
+        name: picture
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                results:
+                  $ref: '#/definitions/models.Profile'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Edit profile
+      tags:
+      - profiles
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

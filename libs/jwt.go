@@ -40,7 +40,6 @@ func ValidateToken(head string) (map[string]interface{}, error) {
 	tok, _ := jwt.ParseSigned(token, []jose.SignatureAlgorithm{jose.HS256})
 	// out := jwt.Claims{}
 	out := make(map[string]interface{})
-	fmt.Println(tok)
 	err := tok.Claims(JWT_SECRET, &out)
 	return out, err
 }
