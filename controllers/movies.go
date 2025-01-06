@@ -33,19 +33,45 @@ func GetAllMovies(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "5"))
 	order := strings.ToLower(ctx.DefaultQuery("order", "ASC"))
 	orderBy := ctx.DefaultQuery("sort_by", "id")
-	movies := models.GetAllMovies(page, limit, orderBy, order)
-	count := models.CountMovie(search)
+	// movies := models.GetAllMovies(page, limit, orderBy, order)
+	// count := models.CountMovie(search)
 
 	if order != "ASC" {
 		order = "DESC"
 	}
 
+	var movies models.ListMovieHome
+	var count int
+	modifyRequestUri := fmt.Sprintf("count+%s", ctx.Request.RequestURI)
+
+	get := libs.GetFromRedis(ctx.Request.RequestURI)
+	getCount := libs.GetFromRedis(modifyRequestUri)
+
+	if get.Val() != "" {
+		raw := []byte(get.Val())
+		if err := json.Unmarshal(raw, &movies); err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		movies = models.GetAllMovies(page, limit, orderBy, order)
+		encoded, _ := json.Marshal(movies)
+		libs.SetToRedis(ctx.Request.RequestURI, encoded)
+	}
+
+	if getCount.Val() != "" {
+		raw := []byte(getCount.Val())
+		json.Unmarshal(raw, &count)
+	} else {
+		count = models.CountMovie(search)
+		encoded, _ := json.Marshal(count)
+		libs.SetToRedis(modifyRequestUri, encoded)
+	}
 	foundMovie := models.SearchMovieByTitle(search, page, limit, orderBy, order)
 	if search != "" {
 		if len(foundMovie) == 1 {
 			ctx.JSON(http.StatusOK, models.Response{
 				Succsess: true,
-				Message:  "list all users",
+				Message:  "List all movies",
 				PageInfo: models.PageInfo(libs.GetPageInfo(page, limit, count)),
 				Results:  foundMovie[0],
 			})
@@ -53,7 +79,7 @@ func GetAllMovies(ctx *gin.Context) {
 		}
 		ctx.JSON(http.StatusOK, models.Response{
 			Succsess: true,
-			Message:  "list all users",
+			Message:  "List all movies",
 			PageInfo: models.PageInfo(libs.GetPageInfo(page, limit, count)),
 			Results:  foundMovie,
 		})

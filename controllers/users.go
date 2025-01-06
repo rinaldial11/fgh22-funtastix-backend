@@ -150,7 +150,7 @@ func DeleteUser(ctx *gin.Context) {
 }
 
 func CreateUser(ctx *gin.Context) {
-	var formUser dto.AuthDTO
+	var formUser dto.RegisterDTO
 	ctx.ShouldBind(&formUser)
 	found := models.FindUserByEmail(strings.ToLower(formUser.Email))
 	if found != (models.User{}) {

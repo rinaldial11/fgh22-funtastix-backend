@@ -36,7 +36,6 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "minLength": 5,
                         "type": "string",
                         "name": "password",
                         "in": "formData",
@@ -74,7 +73,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "minLength": 5,
+                        "minLength": 6,
                         "type": "string",
                         "name": "password",
                         "in": "formData",
@@ -335,6 +334,84 @@ const docTemplate = `{
                 }
             }
         },
+        "/orders": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Add orders",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orders"
+                ],
+                "summary": "Add order",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "cinema_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "date_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "location_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "method",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "movie_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "time_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "array",
+                        "description": "add seat order",
+                        "name": "seat_id[]",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/models.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "results": {
+                                            "$ref": "#/definitions/models.OrderDetails"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/profiles": {
             "get": {
                 "security": [
@@ -429,11 +506,6 @@ const docTemplate = `{
                         "in": "formData"
                     },
                     {
-                        "type": "string",
-                        "name": "point",
-                        "in": "formData"
-                    },
-                    {
                         "type": "file",
                         "description": "profile user",
                         "name": "picture",
@@ -519,6 +591,41 @@ const docTemplate = `{
                 "title": {
                     "type": "string",
                     "example": "Avengers : Endgame"
+                }
+            }
+        },
+        "models.OrderDetails": {
+            "type": "object",
+            "properties": {
+                "cinema": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "movie": {
+                    "type": "string"
+                },
+                "paymentMethod": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "seatCount": {
+                    "type": "integer"
+                },
+                "time": {
+                    "type": "string"
                 }
             }
         },

@@ -8,6 +8,7 @@ import (
 )
 
 func OrderRouter(router *gin.RouterGroup) {
+	router.Use(middlewares.RateLimiter)
 	router.Use(middlewares.ValidateToken())
 	router.GET("", controllers.GetAllOrders)
 	router.POST("", controllers.AddOrder)

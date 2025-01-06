@@ -6,6 +6,7 @@ import (
 	"funtastix/backend/dto"
 	"funtastix/backend/libs"
 	"funtastix/backend/models"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -30,6 +31,18 @@ func GetAllOrders(ctx *gin.Context) {
 	})
 }
 
+// AddOrder godoc
+// @Schemes
+// @Summary Add order
+// @Description Add orders
+// @Tags orders
+// @Accept x-www-form-urlencoded
+// @Produce json
+// @Param formMovie formData dto.OrderDTO false "add order"
+// @Param seat_id[] formData array false "add seat order"
+// @Success 200 {object} models.Response{results=models.OrderDetails}
+// @Security ApiKeyAuth
+// @Router /orders [post]
 func AddOrder(ctx *gin.Context) {
 	var order dto.OrderDTO
 	claims, _ := ctx.Get("claims")
@@ -57,14 +70,20 @@ func AddOrder(ctx *gin.Context) {
 			Message:  "Invalid token",
 		})
 	}
-	ctx.ShouldBind(&order)
+	if err := ctx.ShouldBind(&order); err != nil {
+		fmt.Println(err)
+	}
 	order.UserId = claimsStruct.UserID
+	// log.Println(order.UserId)
 	orderID := models.AddOrder(order)
-	newOrder := models.SelectOneOrderFirst(orderID)
+	log.Println(order)
+	models.AddSeatOrder(order.SeatId, orderID.Id)
+	newOrder := models.SelectOneOrderSeat(orderID.Id)
+	// log.Println(newOrder)
 
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
-		Message:  "Choose your seat",
+		Message:  "Your order details, please pay your order",
 		Results:  newOrder,
 	})
 }

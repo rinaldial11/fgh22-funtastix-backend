@@ -112,7 +112,7 @@ func FindUserByEmail(email string) User {
 	return user
 }
 
-func AddUser(userData dto.AuthDTO, profile_id int) User {
+func AddUser(userData dto.RegisterDTO, profile_id int) User {
 	conn := libs.DB()
 	defer conn.Close(context.Background())
 

@@ -11,8 +11,8 @@ import (
 
 func DB() *pgx.Conn {
 	godotenv.Load()
-	connstring := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_PORT"), os.Getenv("POSTGRES_DB"))
-	conn, err := pgx.Connect(context.Background(), connstring)
+	config, _ := pgx.ParseConfig("")
+	conn, err := pgx.Connect(context.Background(), config.ConnString())
 	if err != err {
 		fmt.Println(err)
 		os.Exit(1)

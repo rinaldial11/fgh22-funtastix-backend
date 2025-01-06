@@ -111,7 +111,31 @@ CREATE TABLE seats_order (
     order_id int REFERENCES orders (id),
     created_at timestamp DEFAULT NOW(),
     updated_at timestamp
-)
+);
+
+INSERT INTO
+    profiles (
+        first_name,
+        last_name,
+        phone_number,
+        point,
+        picture
+    )
+VALUES ('', '', '', '', '');
+
+INSERT INTO
+    users (
+        profile_id,
+        email,
+        password,
+        role
+    )
+VALUES (
+        1,
+        'admin@mail.com',
+        '123456',
+        ''
+    );
 
 INSERT INTO
     movies (
@@ -324,7 +348,7 @@ VALUES (
         'A great white shark terrorizes a small island community, prompting a police chief, a marine biologist, and a professional shark hunter to catch it.',
         1
     );
-    
+
 INSERT INTO
     movie_genre (movie_id, genre_name)
 VALUES (1, 'Action'),

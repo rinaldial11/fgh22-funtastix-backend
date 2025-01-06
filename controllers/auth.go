@@ -18,12 +18,19 @@ import (
 // @Tags auth
 // @Accept x-www-form-urlencoded
 // @Produce json
-// @Param formUser formData dto.AuthDTO true "form register"
+// @Param formUser formData dto.RegisterDTO true "form register"
 // @Success 200 {object} models.Response
 // @Router /auth/register [post]
 func Register(ctx *gin.Context) {
-	var formUser dto.AuthDTO
-	ctx.ShouldBind(&formUser)
+	var formUser dto.RegisterDTO
+	if err := ctx.ShouldBind(&formUser); err != nil {
+		errMess := libs.RegisterErrHandler(err)
+		ctx.JSON(http.StatusBadRequest, models.Response{
+			Succsess: false,
+			Message:  errMess,
+		})
+		return
+	}
 	found := models.FindUserByEmail(strings.ToLower(formUser.Email))
 	if found != (models.User{}) {
 		ctx.JSON(http.StatusBadRequest, models.Response{
@@ -32,33 +39,24 @@ func Register(ctx *gin.Context) {
 		})
 		return
 	}
-	if len(formUser.Email) < 8 || !strings.Contains(formUser.Email, "@") {
+
+	isStrong := libs.StrongPasswordHandler(formUser)
+
+	if isStrong != "" {
 		ctx.JSON(http.StatusBadRequest, models.Response{
 			Succsess: false,
-			Message:  "email must be 8 character and contains @",
+			Message:  isStrong,
 		})
 		return
 	}
-	if len(formUser.Password) < 6 {
-		ctx.JSON(http.StatusBadRequest, models.Response{
-			Succsess: false,
-			Message:  "password length at least 6 chatacter",
-		})
-		return
-	}
+
 	hasher := libs.CreateHash(formUser.Password)
 	formUser.Email = strings.ToLower(formUser.Email)
 
-	// if strings.Contains(formUser.Email, "admin") {
-	// 	formUser.Role = "admin"
-	// } else {
-	// 	formUser.Role = "user"
-	// }
 	formUser.Password = hasher
 
 	profile := models.AddProfile()
 	models.AddUser(formUser, profile.Id)
-	// models.Register(formUser)
 
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,
@@ -73,11 +71,11 @@ func Register(ctx *gin.Context) {
 // @Tags auth
 // @Accept x-www-form-urlencoded
 // @Produce json
-// @Param form formData dto.AuthDTO true "form login"
+// @Param form formData dto.LoginDTO true "form login"
 // @Success 200 {object} models.Response
 // @Router /auth/login [post]
 func Login(ctx *gin.Context) {
-	var form dto.AuthDTO
+	var form dto.LoginDTO
 	err := ctx.ShouldBind(&form)
 	if err != nil {
 		fmt.Println(err)

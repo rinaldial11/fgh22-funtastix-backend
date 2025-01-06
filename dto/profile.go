@@ -6,7 +6,7 @@ type ProfileDTO struct {
 	Email           string `form:"email" binding:"required,email"`
 	PhoneNumber     string `form:"phone_number"`
 	Picture         string `form:"-" swaggerignore:"true"`
-	Point           string `form:"point"`
+	Point           string `form:"point" swaggerignore:"true"`
 	Password        string `form:"password" binding:"required,min=6"`
 	ConfirmPassword string `form:"confirm_password" binding:"required,eqfield=Password"`
 }

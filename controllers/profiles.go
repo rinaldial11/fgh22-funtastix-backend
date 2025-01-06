@@ -143,7 +143,9 @@ func EditProfile(ctx *gin.Context) {
 		foundUser.Point = "0"
 	}
 
-	updatedProfile := models.EditProfile(foundUser, claimsStruct.UserID)
+	models.EditProfile(foundUser, claimsStruct.UserID)
+	updatedProfile := models.SelectCurrentProfile(claimsStruct.UserID)
+	log.Println(updatedProfile)
 	if updatedProfile == (models.Profile{}) {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Succsess: false,

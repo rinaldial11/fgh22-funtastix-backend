@@ -9,6 +9,7 @@ import (
 
 func MovieRouter(router *gin.RouterGroup) {
 	// router.Use(middlewares.ValidateToken())
+	router.Use(middlewares.RateLimiter)
 	router.GET("", controllers.GetAllMovies)
 	router.GET("/:id", controllers.GetMovieById)
 }

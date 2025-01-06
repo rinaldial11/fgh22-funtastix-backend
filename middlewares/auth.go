@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"funtastix/backend/libs"
 	"funtastix/backend/models"
+	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,6 +18,16 @@ func ValidateToken() gin.HandlerFunc {
 			ctx.JSON(http.StatusUnauthorized, models.Response{
 				Succsess: false,
 				Message:  "Unauthorized",
+			})
+			ctx.Abort()
+			return
+		}
+		bearer := strings.Split(head, " ")[0]
+		log.Println(bearer)
+		if bearer != "Bearer" {
+			ctx.JSON(http.StatusUnauthorized, models.Response{
+				Succsess: false,
+				Message:  "Invalid token",
 			})
 			ctx.Abort()
 			return

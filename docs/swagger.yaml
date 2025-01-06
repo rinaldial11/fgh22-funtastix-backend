@@ -44,6 +44,29 @@ definitions:
         example: 'Avengers : Endgame'
         type: string
     type: object
+  models.OrderDetails:
+    properties:
+      cinema:
+        type: string
+      date:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      location:
+        type: string
+      movie:
+        type: string
+      paymentMethod:
+        type: string
+      price:
+        type: integer
+      seatCount:
+        type: integer
+      time:
+        type: string
+    type: object
   models.Profile:
     properties:
       email:
@@ -94,7 +117,6 @@ paths:
         required: true
         type: string
       - in: formData
-        minLength: 5
         name: password
         required: true
         type: string
@@ -119,7 +141,7 @@ paths:
         required: true
         type: string
       - in: formData
-        minLength: 5
+        minLength: 6
         name: password
         required: true
         type: string
@@ -278,6 +300,51 @@ paths:
       summary: Movie Details
       tags:
       - movies
+  /orders:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Add orders
+      parameters:
+      - in: formData
+        name: cinema_id
+        type: integer
+      - in: formData
+        name: date_id
+        type: integer
+      - in: formData
+        name: location_id
+        type: integer
+      - in: formData
+        name: method
+        type: integer
+      - in: formData
+        name: movie_id
+        type: integer
+      - in: formData
+        name: time_id
+        type: integer
+      - description: add seat order
+        in: formData
+        name: seat_id[]
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Response'
+            - properties:
+                results:
+                  $ref: '#/definitions/models.OrderDetails'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Add order
+      tags:
+      - orders
   /profiles:
     get:
       consumes:
@@ -328,9 +395,6 @@ paths:
         type: string
       - in: formData
         name: phone_number
-        type: string
-      - in: formData
-        name: point
         type: string
       - description: profile user
         in: formData

@@ -22,10 +22,12 @@ import (
 func main() {
 	route := gin.Default()
 
+	// route.Use(middlewares.RateLimiter)
 	route.Static("/profile/images", "uploads/profile")
 	route.MaxMultipartMemory = 2 << 20
 	docs.SwaggerInfo.BasePath = "/"
 	route.GET("/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	routers.Routers(route)
+	// libs.GracefulShutdown(":8888", route)
 	route.Run(":8888")
 }

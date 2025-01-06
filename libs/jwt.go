@@ -38,7 +38,6 @@ func ValidateToken(head string) (map[string]interface{}, error) {
 	JWT_SECRET := []byte(GetMD5Hash())
 	token := strings.Split(head, " ")[1:][0]
 	tok, _ := jwt.ParseSigned(token, []jose.SignatureAlgorithm{jose.HS256})
-	// out := jwt.Claims{}
 	out := make(map[string]interface{})
 	err := tok.Claims(JWT_SECRET, &out)
 	return out, err
