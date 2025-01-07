@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"funtastix/backend/libs"
 	"funtastix/backend/models"
-	"log"
 	"net/http"
 	"strings"
 
@@ -23,7 +22,7 @@ func ValidateToken() gin.HandlerFunc {
 			return
 		}
 		bearer := strings.Split(head, " ")[0]
-		log.Println(bearer)
+		// log.Println(bearer)
 		if bearer != "Bearer" {
 			ctx.JSON(http.StatusUnauthorized, models.Response{
 				Succsess: false,

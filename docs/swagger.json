@@ -61,6 +61,7 @@
                 "summary": "Register",
                 "parameters": [
                     {
+                        "minLength": 12,
                         "type": "string",
                         "name": "email",
                         "in": "formData",
@@ -379,6 +380,10 @@
                     },
                     {
                         "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
                         "description": "add seat order",
                         "name": "seat_id[]",
                         "in": "formData"

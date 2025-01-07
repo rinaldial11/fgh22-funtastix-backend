@@ -137,6 +137,7 @@ paths:
       description: Register account
       parameters:
       - in: formData
+        minLength: 12
         name: email
         required: true
         type: string
@@ -324,8 +325,11 @@ paths:
       - in: formData
         name: time_id
         type: integer
-      - description: add seat order
+      - collectionFormat: csv
+        description: add seat order
         in: formData
+        items:
+          type: string
         name: seat_id[]
         type: array
       produces:

@@ -13,13 +13,25 @@ type PaymentMethodDTO struct {
 }
 
 type OrderDTO struct {
-	Id              int   `swaggerignore:"true"`
-	UserId          int   `swaggerignore:"true"`
-	MovieId         int   `form:"movie_id"`
-	DateId          int   `form:"date_id"`
-	TimeId          int   `form:"time_id"`
-	LocationId      int   `form:"location_id"`
-	CinemaId        int   `form:"cinema_id"`
-	SeatId          []int `form:"seat_id[]" swaggerignore:"true"`
-	PaymentMethodId int   `form:"method"`
+	Id              int      `swaggerignore:"true"`
+	UserId          int      `swaggerignore:"true"`
+	MovieId         int      `form:"movie_id"`
+	DateId          int      `form:"date_id"`
+	TimeId          int      `form:"time_id"`
+	LocationId      int      `form:"location_id"`
+	CinemaId        int      `form:"cinema_id"`
+	SeatId          []string `form:"seat_id[]" swaggerignore:"true"`
+	PaymentMethodId int      `form:"method"`
 }
+
+// type OrderTempDTO struct {
+// 	Id              int    `swaggerignore:"true"`
+// 	UserId          int    `swaggerignore:"true"`
+// 	MovieId         int    `form:"movie_id"`
+// 	DateId          int    `form:"date_id"`
+// 	TimeId          int    `form:"time_id"`
+// 	LocationId      int    `form:"location_id"`
+// 	CinemaId        int    `form:"cinema_id"`
+// 	SeatId          string `form:"seat_id[]" swaggerignore:"true"`
+// 	PaymentMethodId int    `form:"method"`
+// }

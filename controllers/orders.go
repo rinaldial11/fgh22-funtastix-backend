@@ -6,7 +6,6 @@ import (
 	"funtastix/backend/dto"
 	"funtastix/backend/libs"
 	"funtastix/backend/models"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -38,7 +37,7 @@ func GetAllOrders(ctx *gin.Context) {
 // @Tags orders
 // @Accept x-www-form-urlencoded
 // @Produce json
-// @Param formMovie formData dto.OrderDTO false "add order"
+// @Param formMovie formData dto.OrderTempDTO false "add order"
 // @Param seat_id[] formData array false "add seat order"
 // @Success 200 {object} models.Response{results=models.OrderDetails}
 // @Security ApiKeyAuth
@@ -72,14 +71,17 @@ func AddOrder(ctx *gin.Context) {
 	}
 	if err := ctx.ShouldBind(&order); err != nil {
 		fmt.Println(err)
+		ctx.JSON(http.StatusBadRequest, models.Response{
+			Succsess: false,
+			Message:  "Invalid input data",
+		})
+		return
 	}
+
 	order.UserId = claimsStruct.UserID
-	// log.Println(order.UserId)
 	orderID := models.AddOrder(order)
-	log.Println(order)
 	models.AddSeatOrder(order.SeatId, orderID.Id)
 	newOrder := models.SelectOneOrderSeat(orderID.Id)
-	// log.Println(newOrder)
 
 	ctx.JSON(http.StatusOK, models.Response{
 		Succsess: true,

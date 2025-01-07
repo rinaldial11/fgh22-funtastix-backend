@@ -6,6 +6,8 @@ import (
 	"funtastix/backend/dto"
 	"funtastix/backend/libs"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -101,17 +103,32 @@ func AddOrder(formOrder dto.OrderDTO) dto.OrderDTO {
 	return orderId
 }
 
-func AddSeatOrder(formOrder []int, orderId int) dto.OrderDTO {
+func AddSeatOrder(formOrder []string, orderId int) dto.OrderDTO {
 	conn := libs.DB()
 	defer conn.Close(context.Background())
 
 	var seatOrder dto.OrderDTO
+	var seatId []int
+	var seatIdStr []string
+	// log.Println(formOrder)
+	for _, v := range formOrder {
+		log.Println(v)
+		if strings.Contains(v, ",") {
+			seatIdStr = strings.Split(v, ",")
+			log.Println(seatIdStr)
+		}
+	}
 
+	for _, v := range seatIdStr {
+		t, _ := strconv.Atoi(v)
+		seatId = append(seatId, t)
+	}
+	// log.Println(seatId)
 	bq := "INSERT INTO seats_order (seat_id, order_id) VALUES"
 
 	var values []interface{}
-	log.Println(formOrder)
-	for i, v := range formOrder {
+	// log.Println(formOrder)
+	for i, v := range seatId {
 		if len(values) > 0 {
 			bq += ","
 		}

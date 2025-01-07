@@ -67,6 +67,7 @@ const docTemplate = `{
                 "summary": "Register",
                 "parameters": [
                     {
+                        "minLength": 12,
                         "type": "string",
                         "name": "email",
                         "in": "formData",
@@ -385,6 +386,10 @@ const docTemplate = `{
                     },
                     {
                         "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
                         "description": "add seat order",
                         "name": "seat_id[]",
                         "in": "formData"
