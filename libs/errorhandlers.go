@@ -5,11 +5,6 @@ import (
 	"strings"
 )
 
-// var UpperCased bool = strings.ContainsAny(form.Password, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-// var LowerCased bool = strings.ContainsAny(form.Password, "abcdefghijklmnopqrstuvwxyz")
-// var IncludeNum bool = strings.ContainsAny(form.Password, "0123456789")
-// var IncludeSC bool = strings.ContainsAny(form.Password, "!@#$%^&*()-_=+[]{}|;:',.<>?/`~")
-
 func RegisterErrHandler(err error) string {
 	var errMessage string
 	if strings.Contains(err.Error(), "Field validation for 'Email' failed on the 'min' tag") {

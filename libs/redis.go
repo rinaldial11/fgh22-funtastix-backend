@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
@@ -28,7 +29,7 @@ func GetFromRedis(uri string) *redis.StringCmd {
 }
 
 func SetToRedis(uri string, encoded []byte) *redis.StatusCmd {
-	set := Redis().Set(context.Background(), uri, string(encoded), 0)
+	set := Redis().Set(context.Background(), uri, string(encoded), 10*time.Minute)
 
 	return set
 }

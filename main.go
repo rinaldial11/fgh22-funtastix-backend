@@ -4,6 +4,7 @@ import (
 	"funtastix/backend/docs"
 	"funtastix/backend/routers"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -22,6 +23,11 @@ import (
 func main() {
 	route := gin.Default()
 
+	route.Use(cors.New(cors.Config{
+		AllowAllOrigins: true,
+		AllowHeaders:    []string{"Authorization", "Content-Type"},
+		AllowMethods:    []string{"POST", "GET", "PATCH", "DELETE"},
+	}))
 	// route.Use(middlewares.RateLimiter)
 	route.Static("/profile/images", "uploads/profile")
 	route.MaxMultipartMemory = 2 << 20

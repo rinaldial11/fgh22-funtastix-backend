@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"funtastix/backend/dto"
 	"funtastix/backend/libs"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -112,10 +111,10 @@ func AddSeatOrder(formOrder []string, orderId int) dto.OrderDTO {
 	var seatIdStr []string
 	// log.Println(formOrder)
 	for _, v := range formOrder {
-		log.Println(v)
+		// log.Println(v)
 		if strings.Contains(v, ",") {
 			seatIdStr = strings.Split(v, ",")
-			log.Println(seatIdStr)
+			// log.Println(seatIdStr)
 		}
 	}
 
